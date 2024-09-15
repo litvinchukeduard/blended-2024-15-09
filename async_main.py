@@ -1,12 +1,10 @@
 import asyncio
 import functools
 
-@app.route()
-
 def printing_decorator(func):
     @functools.wraps(func)
     async def wrapper(*args, **kwargs):
-        
+
         print('Before function call')
         result = await func(*args, **kwargs)
         print('After function call')
