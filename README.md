@@ -8,6 +8,8 @@ https://validator.w3.org/nu/#l9c24
 
 https://jinja.palletsprojects.com/en/3.1.x/templates/
 
+flask --app main --debug run
+
 Написати веб-додаток, який буде допомагати слідкувати за тренуваннями
 
 Тренування складається з вправ. Де вправа {'title': 'Присідання', 'sets': 4, 'reps': 25}

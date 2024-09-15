@@ -1,22 +1,43 @@
-from flask import Flask, render_template
+import json
+import asyncio
+from flask import Flask, render_template, url_for, request, redirect
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='static')
 
-workouts = [
+workout_file = 'data.json'
 
-    {'id': 1, 'title': 'Workout One', 'calories': 2000, 'exercises': [
-        {'title': 'Присідання', 'sets': 2, 'reps': 4},
-        {'title': 'Віджимання', 'sets': 4, 'reps': 8}
-    ]},
+lock = asyncio.Lock()
 
+async def write_workouts_to_file():
+    with open(workout_file, 'w', encoding='utf-16') as file:
+        json.dump(workouts, file)
 
-    {'id': 2, 'title': 'Workout Two', 'calories': 1000, 'exercises': [
-        {'title': 'Віджимання', 'sets': 3, 'reps': 6},
-        {'title': 'Присідання', 'sets': 4, 'reps': 8}
-    ]}
+async def read_workouts_from_file():
+    with open(workout_file, 'r', encoding='utf-16') as file:
+        return json.load(file)
 
-]
+workouts = asyncio.run(read_workouts_from_file())
 
 @app.route("/")
-def index():
+async def index():
     return render_template('index.html', available_workouts=workouts)
+
+@app.route("/add-workout", methods=['GET', 'POST'])
+async def add_workout():
+    if request.method == 'GET':
+        return render_template('add_workout.html')
+    elif request.method == 'POST':
+        title = request.form['title']
+        calories = request.form['calories']
+        new_workout = {'title': title, 'calories': calories, 'exercises': []}
+        workouts.append(new_workout)
+
+        await lock.acquire()
+        try:
+            await write_workouts_to_file()
+        finally:
+            lock.release()
+            
+        # return render_template('index.html', available_workouts=workouts) # TODO: Fix to redirect
+        return redirect(url_for('index'))
+    
